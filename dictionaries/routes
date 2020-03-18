@@ -132,8 +132,12 @@ onvif1
 pass@10.0.0.5:6667/blinkhd
 play1.sdp
 play2.sdp
+profile1/media.smp
 profile2/media.smp
+profile3/media.smp
+profile4/media.smp
 profile5/media.smp
+profile6/media.smp
 rtpvideo1.sdp
 rtsp_live0
 rtsp_live1
