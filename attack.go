@@ -145,19 +145,17 @@ func (s *Scanner) DetectAuthMethods(targets []Stream) []Stream {
 }
 
 func (s *Scanner) attackCameraCredentials(target Stream, resChan chan<- Stream) {
-	for _, username := range s.credentials.Usernames {
-		for _, password := range s.credentials.Passwords {
-			ok := s.credAttack(target, username, password)
-			if ok {
-				target.CredentialsFound = true
-				target.Username = username
-				target.Password = password
-				resChan <- target
-				return
-			}
-			time.Sleep(s.attackInterval)
-		}
+//	for _, username := range s.credentials.Usernames {
+//		for _, password := range s.credentials.Passwords {
+	ok := s.credAttack(target, s.username, s.password)
+	if ok {
+		target.CredentialsFound = true
+		target.Username = s.username
+		target.Password = s.password
+		resChan <- target
+		return
 	}
+	time.Sleep(s.attackInterval)
 
 	target.CredentialsFound = false
 	resChan <- target
