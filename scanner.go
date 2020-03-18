@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	defaultCredentialDictionaryPath = "${GOPATH}/src/github.com/Ullaakut/cameradar/dictionaries/credentials.json"
 	defaultRouteDictionaryPath      = "${GOPATH}/src/github.com/Ullaakut/cameradar/dictionaries/routes"
 )
 
@@ -28,10 +27,10 @@ type Scanner struct {
 	scanSpeed                int
 	attackInterval           time.Duration
 	timeout                  time.Duration
-	credentialDictionaryPath string
 	routeDictionaryPath      string
+	password				 string
+	username				 string
 
-	credentials Credentials
 	routes      Routes
 }
 
@@ -49,7 +48,6 @@ func New(options ...func(*Scanner)) (*Scanner, error) {
 
 	scanner := &Scanner{
 		curl:                     &Curl{CURL: handle},
-		credentialDictionaryPath: defaultCredentialDictionaryPath,
 		routeDictionaryPath:      defaultRouteDictionaryPath,
 	}
 
@@ -58,11 +56,10 @@ func New(options ...func(*Scanner)) (*Scanner, error) {
 	}
 
 	gopath := os.Getenv("GOPATH")
-	if gopath == "" && scanner.credentialDictionaryPath == defaultCredentialDictionaryPath && scanner.routeDictionaryPath == defaultRouteDictionaryPath {
+	if gopath == "" && scanner.routeDictionaryPath == defaultRouteDictionaryPath {
 		disgo.Errorln(style.Failure("No $GOPATH was found.\nDictionaries may not be loaded properly, please set your $GOPATH to use the default dictionaries."))
 	}
 
-	scanner.credentialDictionaryPath = os.ExpandEnv(scanner.credentialDictionaryPath)
 	scanner.routeDictionaryPath = os.ExpandEnv(scanner.routeDictionaryPath)
 
 	scanner.term = disgo.NewTerminal(
@@ -74,16 +71,10 @@ func New(options ...func(*Scanner)) (*Scanner, error) {
 		return nil, fmt.Errorf("unable to parse target file: %v", err)
 	}
 
-	scanner.term.StartStepf("Loading credentials")
-	err = scanner.LoadCredentials()
-	if err != nil {
-		return nil, scanner.term.FailStepf("unable to load credentials dictionary: %v", err)
-	}
-
 	scanner.term.StartStepf("Loading routes")
 	err = scanner.LoadRoutes()
 	if err != nil {
-		return nil, scanner.term.FailStepf("unable to load credentials dictionary: %v", err)
+		return nil, scanner.term.FailStepf("unable to load routes dictionary: %v", err)
 	}
 
 	disgo.EndStep()
@@ -119,14 +110,6 @@ func WithVerbose(verbose bool) func(s *Scanner) {
 	}
 }
 
-// WithCustomCredentials specifies a custom credential dictionary
-// to use for the attacks.
-func WithCustomCredentials(dictionaryPath string) func(s *Scanner) {
-	return func(s *Scanner) {
-		s.credentialDictionaryPath = dictionaryPath
-	}
-}
-
 // WithCustomRoutes specifies a custom route dictionary
 // to use for the attacks.
 func WithCustomRoutes(dictionaryPath string) func(s *Scanner) {
@@ -158,5 +141,17 @@ func WithAttackInterval(interval time.Duration) func(s *Scanner) {
 func WithTimeout(timeout time.Duration) func(s *Scanner) {
 	return func(s *Scanner) {
 		s.timeout = timeout
+	}
+}
+
+func WithPassword(password string) func(s *Scanner) {
+	return func(s *Scanner) {
+		s.password = password
+	}
+}
+
+func WithUsername(username string) func(s *Scanner) {
+	return func(s *Scanner) {
+		s.username = username
 	}
 }
