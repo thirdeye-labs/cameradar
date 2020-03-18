@@ -18,13 +18,6 @@ type Stream struct {
 	AuthenticationType int `json:"authentication_type"`
 }
 
-// Credentials is a map of credentials
-// usernames are keys and passwords are values
-// creds['admin'] -> 'secure_password'
-type Credentials struct {
-	Usernames []string `json:"usernames"`
-	Passwords []string `json:"passwords"`
-}
 
 // Routes is a slice of Routes
 // ['/live.sdp', '/media.amp', ...]
@@ -35,7 +28,8 @@ type Options struct {
 	Targets     []string      `json:"target" validate:"required"`
 	Ports       []string      `json:"ports"`
 	Routes      Routes        `json:"routes"`
-	Credentials Credentials   `json:"credentials"`
 	Speed       int           `json:"speed"`
 	Timeout     time.Duration `json:"timeout"`
+	Password	string        `json:"password"` 
+	Username	string        `json:"username"` 
 }
