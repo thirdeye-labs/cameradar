@@ -1,9 +1,13 @@
 package cameradar
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/Ullaakut/disgo/style"
 	curl "github.com/Ullaakut/go-curl"
 )
+
 
 // PrintStreams prints information on each stream.
 func (s *Scanner) PrintStreams(streams []Stream) {
@@ -11,6 +15,13 @@ func (s *Scanner) PrintStreams(streams []Stream) {
 		s.term.Infof("%s No streams were found. Please make sure that your target is on an accessible network.\n", style.Failure(style.SymbolCross))
 	}
 
+	streams_marshalled, err := json.MarshalIndent(streams, "", "	")
+	//streams_marshalled, err := json.MarshalIndent(json.Marshal(streams), "", "	")
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+		return;
+	}
+	fmt.Printf(string(streams_marshalled))
 	success := 0
 	for _, stream := range streams {
 		if stream.Available {
