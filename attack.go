@@ -145,8 +145,6 @@ func (s *Scanner) DetectAuthMethods(targets []Stream) []Stream {
 }
 
 func (s *Scanner) attackCameraCredentials(target Stream, resChan chan<- Stream) {
-//	for _, username := range s.credentials.Usernames {
-//		for _, password := range s.credentials.Passwords {
 	ok := s.credAttack(target, s.username, s.password)
 	if ok {
 		target.CredentialsFound = true
