@@ -4,24 +4,28 @@ import "time"
 
 // Stream represents a camera's RTSP stream
 type Stream struct {
-	Device   string `json:"device"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Route    string `json:"route"`
-	Address  string `json:"address" validate:"required"`
-	Port     uint16 `json:"port" validate:"required"`
+	Device   	string 			`json:"device"`
+	Username 	string 			`json:"username"`
+	Password 	string			`json:"password"`
+	ValidRoutes	[]ValidRoute	`json:"route"`
+	Address		string 			`json:"address" validate:"required"`
+	Port 	    uint16 			`json:"port" validate:"required"`
 
-	CredentialsFound bool `json:"credentials_found"`
-	RouteFound       bool `json:"route_found"`
-	Available        bool `json:"available"`
-
-	AuthenticationType int `json:"authentication_type"`
+	// Auth type set for the whole host and not for each Route. This should be always true most of the times. 
+	// Having this set for the whole device should reduce scanning times 
+	AuthenticationType int 		`json:"authentication_type"`
 }
 
 
 // Routes is a slice of Routes
 // ['/live.sdp', '/media.amp', ...]
 type Routes []string
+
+type ValidRoute struct {
+	Route				string 	`json:"route"`
+	Available			bool 	`json:"available"`
+	CredentialsFound 	bool 	`json:"credentials_found"`
+}
 
 // Options contains all options needed to launch a complete cameradar scan
 type Options struct {

@@ -43,7 +43,7 @@ func (s *Scanner) Attack(targets []Stream) ([]Stream, error) {
 	// But some cameras run GST RTSP Server which prioritizes 401 over 404 contrary to most cameras.
 	// For these cameras, running another route attack will solve the problem.
 	for _, stream := range streams {
-		if !stream.RouteFound || !stream.CredentialsFound || !stream.Available {
+		if len(stream.ValidRoutes) == 0 	{
 			s.term.StartStepf("Second round of attacks")
 			streams = s.AttackRoute(streams)
 
@@ -61,9 +61,11 @@ func (s *Scanner) Attack(targets []Stream) ([]Stream, error) {
 
 // ValidateStreams tries to setup the stream to validate whether or not it is available.
 func (s *Scanner) ValidateStreams(targets []Stream) []Stream {
-	for i := range targets {
-		targets[i].Available = s.validateStream(targets[i])
-		time.Sleep(s.attackInterval)
+	for i, target := range targets {
+		for c, route := range target.ValidRoutes	{
+			targets[i].ValidRoutes[c].Available = s.validateStream(targets[i], route.Route)
+			time.Sleep(s.attackInterval)
+		}
 	}
 
 	return targets
@@ -75,10 +77,10 @@ func (s *Scanner) AttackCredentials(targets []Stream) []Stream {
 	resChan := make(chan Stream)
 	defer close(resChan)
 
-	for i := range targets {
+	for _, target := range targets {
 		// TODO: Perf Improvement: Skip cameras with no auth type detected, and set their
 		// CredentialsFound value to true.
-		go s.attackCameraCredentials(targets[i], resChan)
+		go s.attackCameraCredentials(target, resChan)
 	}
 
 	attackResults := []Stream{}
@@ -87,13 +89,7 @@ func (s *Scanner) AttackCredentials(targets []Stream) []Stream {
 		attackResults = append(attackResults, <-resChan)
 	}
 
-	for i := range attackResults {
-		if attackResults[i].CredentialsFound {
-			targets = replace(targets, attackResults[i])
-		}
-	}
-
-	return targets
+	return attackResults
 }
 
 // AttackRoute attempts to guess the provided targets' streaming routes using the given
@@ -113,11 +109,10 @@ func (s *Scanner) AttackRoute(targets []Stream) []Stream {
 	}
 
 	for i := range attackResults {
-		if attackResults[i].RouteFound {
+		if len(attackResults[i].ValidRoutes) > 0 {
 			targets = replace(targets, attackResults[i])
 		}
 	}
-
 	return targets
 }
 
@@ -145,44 +140,54 @@ func (s *Scanner) DetectAuthMethods(targets []Stream) []Stream {
 }
 
 func (s *Scanner) attackCameraCredentials(target Stream, resChan chan<- Stream) {
-	ok := s.credAttack(target, s.username, s.password)
-	if ok {
-		target.CredentialsFound = true
-		target.Username = s.username
-		target.Password = s.password
-		resChan <- target
-		return
+	for i, route := range target.ValidRoutes{
+		ok := s.credAttack(target, s.username, s.password, route.Route)
+		if ok {
+			route.CredentialsFound = true
+			target.Username = s.username
+			target.Password = s.password
+		} else {
+			route.CredentialsFound = false
+		}
+		target.ValidRoutes[i] = route
+		time.Sleep(s.attackInterval)
 	}
-	time.Sleep(s.attackInterval)
-
-	target.CredentialsFound = false
 	resChan <- target
 }
 
 func (s *Scanner) attackCameraRoute(target Stream, resChan chan<- Stream) {
+	var v ValidRoute
+
 	for _, route := range s.routes {
 		ok := s.routeAttack(target, route)
 		if ok {
-			target.RouteFound = true
-			target.Route = route
-			resChan <- target
-			return
+			// Route=route, credentials_found=false, available=false
+			v.Route = route
+			v.CredentialsFound = false
+			v.Available = false
+
+			target.ValidRoutes = append(target.ValidRoutes, v)
 		}
 		time.Sleep(s.attackInterval)
 	}
 
-	target.RouteFound = false
 	resChan <- target
 }
 
 func (s *Scanner) detectAuthMethod(stream Stream) int {
 	c := s.curl.Duphandle()
 
+	// Will only scan the first valid route of the device
+	route := ""
+	if len(stream.ValidRoutes) > 0{
+		route = stream.ValidRoutes[0].Route
+	}
+
 	attackURL := fmt.Sprintf(
 		"rtsp://%s:%d/%s",
 		stream.Address,
 		stream.Port,
-		stream.Route,
+		route, 
 	)
 
 	s.setCurlOptions(c)
@@ -262,7 +267,7 @@ func (s *Scanner) routeAttack(stream Stream, route string) bool {
 	return false
 }
 
-func (s *Scanner) credAttack(stream Stream, username string, password string) bool {
+func (s *Scanner) credAttack(stream Stream, username string, password string, route string) bool {
 	c := s.curl.Duphandle()
 
 	attackURL := fmt.Sprintf(
@@ -271,7 +276,7 @@ func (s *Scanner) credAttack(stream Stream, username string, password string) bo
 		password,
 		stream.Address,
 		stream.Port,
-		stream.Route,
+		route, 
 	)
 
 	s.setCurlOptions(c)
@@ -312,7 +317,7 @@ func (s *Scanner) credAttack(stream Stream, username string, password string) bo
 	return false
 }
 
-func (s *Scanner) validateStream(stream Stream) bool {
+func (s *Scanner) validateStream(stream Stream, route string) bool {
 	c := s.curl.Duphandle()
 
 	attackURL := fmt.Sprintf(
@@ -321,7 +326,7 @@ func (s *Scanner) validateStream(stream Stream) bool {
 		stream.Password,
 		stream.Address,
 		stream.Port,
-		stream.Route,
+		route,
 	)
 
 	s.setCurlOptions(c)
