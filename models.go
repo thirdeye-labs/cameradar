@@ -22,9 +22,10 @@ type Stream struct {
 type Routes []string
 
 type ValidRoute struct {
-	Route				string 	`json:"route"`
+	Route				string 	`json:"routes"`
 	Available			bool 	`json:"available"`
-	CredentialsFound 	bool 	`json:"credentials_found"`
+	CredentialsFound 	bool 	`json:"credentialsFound"`
+	ImageURL			string	`json:"imageUrl"`
 }
 
 // Options contains all options needed to launch a complete cameradar scan
