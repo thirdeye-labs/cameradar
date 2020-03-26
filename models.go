@@ -7,7 +7,7 @@ type Stream struct {
 	Device   	string 			`json:"device"`
 	Username 	string 			`json:"username"`
 	Password 	string			`json:"password"`
-	ValidRoutes	[]ValidRoute	`json:"route"`
+	ValidRoutes	[]ValidRoute	`json:"streams"`
 	Address		string 			`json:"address" validate:"required"`
 	Port 	    uint16 			`json:"port" validate:"required"`
 
@@ -22,7 +22,7 @@ type Stream struct {
 type Routes []string
 
 type ValidRoute struct {
-	Route				string 	`json:"routes"`
+	Route				string 	`json:"stream"`
 	Available			bool 	`json:"available"`
 	CredentialsFound 	bool 	`json:"credentialsFound"`
 	ImageURL			string	`json:"imageUrl"`
