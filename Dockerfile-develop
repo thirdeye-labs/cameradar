@@ -16,7 +16,8 @@ RUN apk update && \
 RUN apk --update add --no-cache nmap \
     nmap-nselibs \
     nmap-scripts \
-    curl-dev==7.64.0-r3
+    curl-dev==7.64.0-r3 \
+    ffmpeg
 
 COPY . /go/src/github.com/Ullaakut/cameradar
 WORKDIR /go/src/github.com/Ullaakut/cameradar/cmd/cameradar

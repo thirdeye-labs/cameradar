@@ -54,6 +54,7 @@ func (s *Scanner) Attack(targets []Stream) ([]Stream, error) {
 		}
 	}
 
+	streams = s.makeScreenshots(streams)
 	s.term.EndStep()
 
 	return streams, nil
