@@ -1,5 +1,5 @@
 
-/live/ch01_0
+live/ch01_0
 0/1:1/main
 0/usrnm:pwd/main
 0/video1
@@ -29,6 +29,8 @@ ONVIF/MediaInput
 ONVIF/MediaInput?profile=4_def_profile6
 StdCh1
 Streaming/Channels/1
+Streaming/Channels/101
+Streaming/Channels/102
 Streaming/Unicast/channels/101
 StreamingSetting?version=1.0&action=getRTSPStream&ChannelID=1&ChannelName=Channel1
 VideoInput/1/h264/1
@@ -132,8 +134,12 @@ onvif1
 pass@10.0.0.5:6667/blinkhd
 play1.sdp
 play2.sdp
+profile1/media.smp
 profile2/media.smp
+profile3/media.smp
+profile4/media.smp
 profile5/media.smp
+profile6/media.smp
 rtpvideo1.sdp
 rtsp_live0
 rtsp_live1
