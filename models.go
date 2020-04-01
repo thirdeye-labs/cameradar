@@ -20,15 +20,15 @@ type rtspStream struct {
 	ImageUrl			string `json:"imageUrl"`
 }
 
-// Routes is a slice of Routes
+// Streams is a slice of Streams
 // ['/live.sdp', '/media.amp', ...]
-type Routes []string
+type Streams []string
 
 // Options contains all options needed to launch a complete cameradar scan
 type Options struct {
 	Targets     []string      `json:"target" validate:"required"`
 	Ports       []string      `json:"ports"`
-	Routes      Routes        `json:"routes"`
+	Streams      Streams        `json:"streams"`
 	Speed       int           `json:"speed"`
 	Timeout     time.Duration `json:"timeout"`
 	Password	string        `json:"password"` 

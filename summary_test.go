@@ -37,9 +37,9 @@ var (
 		Password:         "p4ss",
 	}
 
-	routeFound = Device{
-		RouteFound: true,
-		Route:      "r0ute",
+	streamFound = Device{
+		StreamFound: true,
+		Stream:      "r0ute",
 	}
 )
 
@@ -118,14 +118,14 @@ func TestPrintDevices(t *testing.T) {
 			},
 		},
 		{
-			description: "displays route properly",
+			description: "displays stream properly",
 
 			devices: []Device{
-				routeFound,
+				streamFound,
 			},
 
 			expectedLogs: []string{
-				"RTSP route",
+				"RTSP stream",
 				"/r0ute",
 			},
 		},

@@ -170,31 +170,31 @@ func TestLoadCredentials(t *testing.T) {
 	}
 }
 
-func TestLoadRoutes(t *testing.T) {
-	routesJSONString := []byte("admin\nroot")
-	validRoutes := Routes{"admin", "root"}
+func TestLoadStreams(t *testing.T) {
+	streamsJSONString := []byte("admin\nroot")
+	validStreams := Streams{"admin", "root"}
 
 	tests := []struct {
 		description string
 		input       []byte
 		fileExists  bool
 
-		expectedRoutes Routes
+		expectedStreams Streams
 		expectedErr    error
 	}{
 		{
 			description: "Valid baseline",
 
 			fileExists:     true,
-			input:          routesJSONString,
-			expectedRoutes: validRoutes,
+			input:          streamsJSONString,
+			expectedStreams: validStreams,
 		},
 		{
 			description: "File does not exist",
 
 			fileExists:  false,
-			input:       routesJSONString,
-			expectedErr: errors.New("unable to open dictionary: open /tmp/cameradar_test_load_routes_1.xml: no such file or directory"),
+			input:       streamsJSONString,
+			expectedErr: errors.New("unable to open dictionary: open /tmp/cameradar_test_load_streams_1.xml: no such file or directory"),
 		},
 		{
 			description: "No devices in dictionary",
@@ -206,35 +206,35 @@ func TestLoadRoutes(t *testing.T) {
 
 	for i, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			filePath := "/tmp/cameradar_test_load_routes_" + fmt.Sprint(i) + ".xml"
+			filePath := "/tmp/cameradar_test_load_streams_" + fmt.Sprint(i) + ".xml"
 
 			// Create file.
 			if test.fileExists {
 				_, err := os.Create(filePath)
 				if err != nil {
-					fmt.Printf("could not create xml file for LoadRoutes: %v. iteration: %d. file path: %s\n", err, i, filePath)
+					fmt.Printf("could not create xml file for LoadStreams: %v. iteration: %d. file path: %s\n", err, i, filePath)
 					os.Exit(1)
 				}
 
 				err = ioutil.WriteFile(filePath, test.input, 0644)
 				if err != nil {
-					fmt.Printf("could not write xml file for LoadRoutes: %v. iteration: %d. file path: %s\n", err, i, filePath)
+					fmt.Printf("could not write xml file for LoadStreams: %v. iteration: %d. file path: %s\n", err, i, filePath)
 					os.Exit(1)
 				}
 			}
 
 			scanner := &Scanner{
 				term:                disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
-				routeDictionaryPath: filePath,
+				streamDictionaryPath: filePath,
 			}
 
-			err := scanner.LoadRoutes()
+			err := scanner.LoadStreams()
 
 			assert.Equal(t, test.expectedErr, err)
 
-			assert.Len(t, scanner.routes, len(test.expectedRoutes))
-			for _, expectedRoute := range test.expectedRoutes {
-				assert.Contains(t, scanner.routes, expectedRoute)
+			assert.Len(t, scanner.streams, len(test.expectedStreams))
+			for _, expectedStream := range test.expectedStreams {
+				assert.Contains(t, scanner.streams, expectedStream)
 			}
 		})
 	}
@@ -309,27 +309,27 @@ func TestParseCredentialsFromString(t *testing.T) {
 	}
 }
 
-func TestParseRoutesFromString(t *testing.T) {
+func TestParseStreamsFromString(t *testing.T) {
 	tests := []struct {
 		str            string
-		expectedRoutes Routes
+		expectedStreams Streams
 	}{
 		{
 			str:            "a\nb\nc",
-			expectedRoutes: []string{"a", "b", "c"},
+			expectedStreams: []string{"a", "b", "c"},
 		},
 		{
 			str:            "a",
-			expectedRoutes: []string{"a"},
+			expectedStreams: []string{"a"},
 		},
 		{
 			str:            "",
-			expectedRoutes: []string{""},
+			expectedStreams: []string{""},
 		},
 	}
 
 	for _, test := range tests {
-		assert.Equal(t, test.expectedRoutes, ParseRoutesFromString(test.str))
+		assert.Equal(t, test.expectedStreams, ParseStreamsFromString(test.str))
 	}
 }
 

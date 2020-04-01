@@ -20,7 +20,7 @@ func parseArguments() error {
 
 	pflag.StringSliceP("targets", "t", []string{}, "The targets on which to scan for open RTSP devices - required (ex: 172.16.100.0/24)")
 	pflag.StringSliceP("ports", "p", []string{"554", "5554", "8554"}, "The ports on which to search for RTSP devices")
-	pflag.StringP("custom-routes", "r", "${GOPATH}/src/github.com/Ullaakut/cameradar/dictionaries/routes", "The path on which to load a custom routes dictionary")
+	pflag.StringP("custom-streams", "r", "${GOPATH}/src/github.com/Ullaakut/cameradar/dictionaries/streams", "The path on which to load a custom streams dictionary")
 	pflag.StringP("username", "u", "admin", "Username for the camera")
 	pflag.StringP("password", "P", "", "Password for the camera")
 	pflag.IntP("scan-speed", "s", 4, "The nmap speed preset to use for scanning (lower is stealthier)")
@@ -73,7 +73,7 @@ func main() {
 		cameradar.WithVerbose(viper.GetBool("verbose")),
 		cameradar.WithUsername(viper.GetString("username")),
 		cameradar.WithPassword(viper.GetString("password")),
-		cameradar.WithCustomRoutes(viper.GetString("custom-routes")),
+		cameradar.WithCustomStreams(viper.GetString("custom-streams")),
 		cameradar.WithScanSpeed(viper.GetInt("scan-speed")),
 		cameradar.WithAttackInterval(viper.GetDuration("attack-interval")),
 		cameradar.WithTimeout(viper.GetDuration("timeout")),

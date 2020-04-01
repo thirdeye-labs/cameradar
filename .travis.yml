@@ -40,8 +40,8 @@ script:
 - GO111MODULE=on go test -v -covermode=count -coverprofile=coverage.out
 - GO111MODULE=on $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken=$COVERALLS_TOKEN
 # Launch fake cameras to check if cameradar is able to access them
-- docker run -d --name="fake_camera_digest" -e RTSP_ROUTE="/live.sdp" -e RTSP_USERNAME="admin" -e RTSP_PASSWORD="12345" -e RTSP_AUTHENTICATION_METHOD="digest" -p 8554:8554 ullaakut/rtspatt
-- docker run -d --name="fake_camera_basic" -e RTSP_ROUTE="/live.sdp" -e RTSP_USERNAME="root" -e RTSP_PASSWORD="root" -e RTSP_AUTHENTICATION_METHOD="digest" -p 5554:5554 ullaakut/rtspatt
+- docker run -d --name="fake_camera_digest" -e RTSP_STREAM="/live.sdp" -e RTSP_USERNAME="admin" -e RTSP_PASSWORD="12345" -e RTSP_AUTHENTICATION_METHOD="digest" -p 8554:8554 ullaakut/rtspatt
+- docker run -d --name="fake_camera_basic" -e RTSP_STREAM="/live.sdp" -e RTSP_USERNAME="root" -e RTSP_PASSWORD="root" -e RTSP_AUTHENTICATION_METHOD="digest" -p 5554:5554 ullaakut/rtspatt
 # Launch cameradar on the local machine
 - docker run --net=host -t cameradar -t 0.0.0.0 -p 8554,5554 -v > logs.txt
 # Gather the logs from the cameras

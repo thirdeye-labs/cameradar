@@ -32,7 +32,7 @@ WORKDIR /app/cameradar
 COPY --from=build-env /go/src/github.com/Ullaakut/cameradar/dictionaries/ /app/dictionaries/
 COPY --from=build-env /go/src/github.com/Ullaakut/cameradar/cmd/cameradar/ /app/cameradar/
 
-ENV CAMERADAR_CUSTOM_ROUTES="/app/dictionaries/routes"
+ENV CAMERADAR_CUSTOM_STREAMS="/app/dictionaries/streams"
 ENV CAMERADAR_CUSTOM_CREDENTIALS="/app/dictionaries/credentials.json"
 
 ENTRYPOINT ["/app/cameradar/cameradar"]

@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	defaultRouteDictionaryPath      = "${GOPATH}/src/github.com/Ullaakut/cameradar/dictionaries/routes"
+	defaultStreamDictionaryPath      = "${GOPATH}/src/github.com/Ullaakut/cameradar/dictionaries/streams"
 )
 
 // Scanner represents a cameradar scanner. It scans a network and
@@ -28,11 +28,11 @@ type Scanner struct {
 	attackInterval           time.Duration
 	timeout                  time.Duration
 	credentialDictionaryPath string
-	routeDictionaryPath      string
+	streamDictionaryPath      string
 	password				 string
 	username				 string
 
-	routes      Routes
+	streams      Streams
 }
 
 // New creates a new Cameradar Scanner and applies the given options.
@@ -49,7 +49,7 @@ func New(options ...func(*Scanner)) (*Scanner, error) {
 
 	scanner := &Scanner{
 		curl:                     &Curl{CURL: handle},
-		routeDictionaryPath:      defaultRouteDictionaryPath,
+		streamDictionaryPath:      defaultStreamDictionaryPath,
 	}
 
 	for _, option := range options {
@@ -57,11 +57,11 @@ func New(options ...func(*Scanner)) (*Scanner, error) {
 	}
 
 	gopath := os.Getenv("GOPATH")
-	if gopath == "" && scanner.routeDictionaryPath == defaultRouteDictionaryPath {
+	if gopath == "" && scanner.streamDictionaryPath == defaultStreamDictionaryPath {
 		disgo.Errorln(style.Failure("No $GOPATH was found.\nDictionaries may not be loaded properly, please set your $GOPATH to use the default dictionaries."))
 	}
 
-	scanner.routeDictionaryPath = os.ExpandEnv(scanner.routeDictionaryPath)
+	scanner.streamDictionaryPath = os.ExpandEnv(scanner.streamDictionaryPath)
 
 	scanner.term = disgo.NewTerminal(
 		disgo.WithDebug(scanner.debug),
@@ -72,10 +72,10 @@ func New(options ...func(*Scanner)) (*Scanner, error) {
 		return nil, fmt.Errorf("unable to parse target file: %v", err)
 	}
 
-	scanner.term.StartStepf("Loading routes")
-	err = scanner.LoadRoutes()
+	scanner.term.StartStepf("Loading streams")
+	err = scanner.LoadStreams()
 	if err != nil {
-		return nil, scanner.term.FailStepf("unable to load routes dictionary: %v", err)
+		return nil, scanner.term.FailStepf("unable to load streams dictionary: %v", err)
 	}
 
 	disgo.EndStep()
@@ -112,11 +112,11 @@ func WithVerbose(verbose bool) func(s *Scanner) {
 }
 
 
-// WithCustomRoutes specifies a custom route dictionary
+// WithCustomStreams specifies a custom stream dictionary
 // to use for the attacks.
-func WithCustomRoutes(dictionaryPath string) func(s *Scanner) {
+func WithCustomStreams(dictionaryPath string) func(s *Scanner) {
 	return func(s *Scanner) {
-		s.routeDictionaryPath = dictionaryPath
+		s.streamDictionaryPath = dictionaryPath
 	}
 }
 

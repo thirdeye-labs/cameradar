@@ -50,7 +50,7 @@ func TestAttack(t *testing.T) {
 		}
 
 		fakeTargets     = []Device{device1, device2}
-		fakeRoutes      = Routes{"live.sdp", "media.amp"}
+		fakeStreams      = Streams{"live.sdp", "media.amp"}
 		fakeCredentials = Credentials{
 			Usernames: []string{"admin", "root"},
 			Passwords: []string{"12345", "root"},
@@ -111,7 +111,7 @@ func TestAttack(t *testing.T) {
 				timeout:     time.Millisecond,
 				verbose:     false,
 				credentials: fakeCredentials,
-				routes:      fakeRoutes,
+				streams:      fakeStreams,
 			}
 
 			results, err := scanner.Attack(test.targets)
@@ -263,7 +263,7 @@ func TestAttackCredentials(t *testing.T) {
 	}
 }
 
-func TestAttackRoute(t *testing.T) {
+func TestAttackStream(t *testing.T) {
 	var (
 		device1 = Device{
 			Device:    "fakeDevice",
@@ -280,14 +280,14 @@ func TestAttackRoute(t *testing.T) {
 		}
 
 		fakeTargets = []Device{device1, device2}
-		fakeRoutes  = Routes{"live.sdp", "media.amp"}
+		fakeStreams  = Streams{"live.sdp", "media.amp"}
 	)
 
 	tests := []struct {
 		description string
 
 		targets []Device
-		routes  Routes
+		streams  Streams
 		timeout time.Duration
 		verbose bool
 
@@ -301,10 +301,10 @@ func TestAttackRoute(t *testing.T) {
 		expectedErr     error
 	}{
 		{
-			description: "Route found",
+			description: "Stream found",
 
 			targets: fakeTargets,
-			routes:  fakeRoutes,
+			streams:  fakeStreams,
 			timeout: 1 * time.Millisecond,
 
 			status: 403,
@@ -312,10 +312,10 @@ func TestAttackRoute(t *testing.T) {
 			expectedDevices: fakeTargets,
 		},
 		{
-			description: "Route found",
+			description: "Stream found",
 
 			targets: fakeTargets,
-			routes:  fakeRoutes,
+			streams:  fakeStreams,
 			timeout: 1 * time.Millisecond,
 
 			status: 401,
@@ -326,7 +326,7 @@ func TestAttackRoute(t *testing.T) {
 			description: "Camera accessed",
 
 			targets: fakeTargets,
-			routes:  fakeRoutes,
+			streams:  fakeStreams,
 			timeout: 1 * time.Millisecond,
 
 			status: 200,
@@ -337,7 +337,7 @@ func TestAttackRoute(t *testing.T) {
 			description: "curl perform fails",
 
 			targets: fakeTargets,
-			routes:  fakeRoutes,
+			streams:  fakeStreams,
 			timeout: 1 * time.Millisecond,
 
 			performErr: errors.New("dummy error"),
@@ -348,7 +348,7 @@ func TestAttackRoute(t *testing.T) {
 			description: "curl getinfo fails",
 
 			targets: fakeTargets,
-			routes:  fakeRoutes,
+			streams:  fakeStreams,
 			timeout: 1 * time.Millisecond,
 
 			getInfoErr: errors.New("dummy error"),
@@ -359,7 +359,7 @@ func TestAttackRoute(t *testing.T) {
 			description: "verbose mode disabled",
 
 			targets: fakeTargets,
-			routes:  fakeRoutes,
+			streams:  fakeStreams,
 			timeout: 1 * time.Millisecond,
 			verbose: false,
 
@@ -369,7 +369,7 @@ func TestAttackRoute(t *testing.T) {
 			description: "verbose mode enabled",
 
 			targets: fakeTargets,
-			routes:  fakeRoutes,
+			streams:  fakeStreams,
 			timeout: 1 * time.Millisecond,
 			verbose: true,
 
@@ -394,10 +394,10 @@ func TestAttackRoute(t *testing.T) {
 				curl:    curlerMock,
 				timeout: test.timeout,
 				verbose: test.verbose,
-				routes:  test.routes,
+				streams:  test.streams,
 			}
 
-			results := scanner.AttackRoute(test.targets)
+			results := scanner.AttackStream(test.targets)
 
 			assert.Len(t, results, len(test.expectedDevices))
 
@@ -440,7 +440,7 @@ func TestValidateDevices(t *testing.T) {
 		expectedDevices []Device
 	}{
 		{
-			description: "route found",
+			description: "stream found",
 
 			targets: fakeTargets,
 			timeout: 1 * time.Millisecond,
@@ -450,7 +450,7 @@ func TestValidateDevices(t *testing.T) {
 			expectedDevices: fakeTargets,
 		},
 		{
-			description: "route found",
+			description: "stream found",
 
 			targets: fakeTargets,
 			timeout: 1 * time.Millisecond,

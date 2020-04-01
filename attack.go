@@ -28,8 +28,8 @@ func (s *Scanner) Attack(targets []Device) ([]Device, error) {
 	}
 
 	// Most cameras will be accessed successfully with these two attacks.
-	s.term.StartStepf("Attacking routes of %d devices", len(targets))
-	devices := s.AttackRoute(targets)
+	s.term.StartStepf("Attacking streams of %d devices", len(targets))
+	devices := s.AttackStream(targets)
 
 	s.term.StartStepf("Attempting to detect authentication methods of %d devices", len(targets))
 	devices = s.DetectAuthMethods(devices)
@@ -41,11 +41,11 @@ func (s *Scanner) Attack(targets []Device) ([]Device, error) {
 	devices = s.ValidateDevices(devices)
 
 	// But some cameras run GST RTSP Server which prioritizes 401 over 404 contrary to most cameras.
-	// For these cameras, running another route attack will solve the problem.
+	// For these cameras, running another stream attack will solve the problem.
 	for _, device := range devices {
-		if !device.RouteFound || !device.CredentialsFound || !device.Available {
+		if !device.StreamFound || !device.CredentialsFound || !device.Available {
 			s.term.StartStepf("Second round of attacks")
-			devices = s.AttackRoute(devices)
+			devices = s.AttackStream(devices)
 
 			s.term.StartStep("Validating that devices are accessible")
 			devices = s.ValidateDevices(devices)
@@ -96,14 +96,14 @@ func (s *Scanner) AttackCredentials(targets []Device) []Device {
 	return targets
 }
 
-// AttackRoute attempts to guess the provided targets' deviceing routes using the given
+// AttackStream attempts to guess the provided targets' deviceing streams using the given
 // dictionary or the default dictionary if none was provided by the user.
-func (s *Scanner) AttackRoute(targets []Device) []Device {
+func (s *Scanner) AttackStream(targets []Device) []Device {
 	resChan := make(chan Device)
 	defer close(resChan)
 
 	for i := range targets {
-		go s.attackCameraRoute(targets[i], resChan)
+		go s.attackCameraStream(targets[i], resChan)
 	}
 
 	attackResults := []Device{}
@@ -113,7 +113,7 @@ func (s *Scanner) AttackRoute(targets []Device) []Device {
 	}
 
 	for i := range attackResults {
-		if attackResults[i].RouteFound {
+		if attackResults[i].StreamFound {
 			targets = replace(targets, attackResults[i])
 		}
 	}
@@ -163,19 +163,19 @@ func (s *Scanner) attackCameraCredentials(target Device, resChan chan<- Device) 
 	resChan <- target
 }
 
-func (s *Scanner) attackCameraRoute(target Device, resChan chan<- Device) {
-	for _, route := range s.routes {
-		ok := s.routeAttack(target, route)
+func (s *Scanner) attackCameraStream(target Device, resChan chan<- Device) {
+	for _, stream := range s.streams {
+		ok := s.streamAttack(target, stream)
 		if ok {
-			target.RouteFound = true
-			target.Route = route
+			target.StreamFound = true
+			target.Stream = stream
 			resChan <- target
 			return
 		}
 		time.Sleep(s.attackInterval)
 	}
 
-	target.RouteFound = false
+	target.StreamFound = false
 	resChan <- target
 }
 
@@ -186,7 +186,7 @@ func (s *Scanner) detectAuthMethod(device Device) int {
 		"rtsp://%s:%d/%s",
 		device.Address,
 		device.Port,
-		device.Route,
+		device.Stream,
 	)
 
 	s.setCurlOptions(c)
@@ -217,7 +217,7 @@ func (s *Scanner) detectAuthMethod(device Device) int {
 	return authType.(int)
 }
 
-func (s *Scanner) routeAttack(device Device, route string) bool {
+func (s *Scanner) streamAttack(device Device, stream string) bool {
 	c := s.curl.Duphandle()
 
 	attackURL := fmt.Sprintf(
@@ -226,7 +226,7 @@ func (s *Scanner) routeAttack(device Device, route string) bool {
 		device.Password,
 		device.Address,
 		device.Port,
-		route,
+		stream,
 	)
 
 	s.setCurlOptions(c)
@@ -258,7 +258,7 @@ func (s *Scanner) routeAttack(device Device, route string) bool {
 	if s.verbose {
 		s.term.Debugln("DESCRIBE", attackURL, "RTSP/1.0 >", rc)
 	}
-	// If it's a 401 or 403, it means that the credentials are wrong but the route might be okay.
+	// If it's a 401 or 403, it means that the credentials are wrong but the stream might be okay.
 	// If it's a 200, the device is accessed successfully.
 	if rc == httpOK || rc == httpUnauthorized || rc == httpForbidden {
 		return true
@@ -275,7 +275,7 @@ func (s *Scanner) credAttack(device Device, username string, password string) bo
 		password,
 		device.Address,
 		device.Port,
-		device.Route,
+		device.Stream,
 	)
 
 	s.setCurlOptions(c)
@@ -308,7 +308,7 @@ func (s *Scanner) credAttack(device Device, username string, password string) bo
 		s.term.Debugln("DESCRIBE", attackURL, "RTSP/1.0 >", rc)
 	}
 
-	// If it's a 404, it means that the route is incorrect but the credentials might be okay.
+	// If it's a 404, it means that the stream is incorrect but the credentials might be okay.
 	// If it's a 200, the device is accessed successfully.
 	if rc == httpOK || rc == httpNotFound {
 		return true
@@ -325,7 +325,7 @@ func (s *Scanner) validateDevice(device Device) bool {
 		device.Password,
 		device.Address,
 		device.Port,
-		device.Route,
+		device.Stream,
 	)
 
 	s.setCurlOptions(c)

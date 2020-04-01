@@ -46,10 +46,10 @@ func (s *Scanner) PrintDevices(devices []Device) {
 			s.term.Infof("\tPassword:\t\t%s\n", style.Failure("not found"))
 		}
 
-		if device.RouteFound {
-			s.term.Infof("\tRTSP route:\t\t%s\n\n\n", style.Success("/"+device.Route))
+		if device.StreamFound {
+			s.term.Infof("\tRTSP stream:\t\t%s\n\n\n", style.Success("/"+device.Stream))
 		} else {
-			s.term.Infof("\tRTSP route:\t\t%s\n\n\n", style.Failure("not found"))
+			s.term.Infof("\tRTSP stream:\t\t%s\n\n\n", style.Failure("not found"))
 		}
 	}
 
@@ -58,6 +58,6 @@ func (s *Scanner) PrintDevices(devices []Device) {
 	} else if success == 1 {
 		s.term.Infof("%s Successful attack: %s device was accessed", style.Success(style.SymbolCheck), style.Success("one"))
 	} else {
-		s.term.Infof("%s Streams were found but none were accessed. They are most likely configured with secure credentials and routes. You can try adding entries to the dictionary or generating your own in order to attempt a bruteforce attack on the cameras.\n", style.Failure("\xE2\x9C\x96"))
+		s.term.Infof("%s Streams were found but none were accessed. They are most likely configured with secure credentials and streams. You can try adding entries to the dictionary or generating your own in order to attempt a bruteforce attack on the cameras.\n", style.Failure("\xE2\x9C\x96"))
 	}
 }

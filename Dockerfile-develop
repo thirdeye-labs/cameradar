@@ -19,7 +19,7 @@ RUN apk --update add --no-cache nmap \
     curl-dev==7.64.0-r3
 
 ENV GO111MODULE=on
-ENV CAMERADAR_CUSTOM_ROUTES="/app/dictionaries/routes"
+ENV CAMERADAR_CUSTOM_STREAMS="/app/dictionaries/streams"
 ENV CAMERADAR_CUSTOM_CREDENTIALS="/app/dictionaries/credentials.json"
 
 COPY . /go/src/github.com/Ullaakut/cameradar

@@ -20,14 +20,14 @@ func TestNew(t *testing.T) {
 		debug             bool
 		verbose           bool
 		customCredentials string
-		customRoutes      string
+		customStreams      string
 		speed             int
 		attackInterval    time.Duration
 		timeout           time.Duration
 
 		loadTargetsFail bool
 		loadCredsFail   bool
-		loadRoutesFail  bool
+		loadStreamsFail  bool
 
 		curlGlobalFail bool
 		curlEasyFail   bool
@@ -59,9 +59,9 @@ func TestNew(t *testing.T) {
 			expectedErr: true,
 		},
 		{
-			description: "unable to load routes",
+			description: "unable to load streams",
 
-			loadRoutesFail: true,
+			loadStreamsFail: true,
 
 			expectedErr: true,
 		},
@@ -83,7 +83,7 @@ func TestNew(t *testing.T) {
 			description: "gopath not set and default dicts",
 
 			customCredentials: defaultCredentialDictionaryPath,
-			customRoutes:      defaultRouteDictionaryPath,
+			customStreams:      defaultStreamDictionaryPath,
 
 			expectedErr: true,
 		},
@@ -106,9 +106,9 @@ func TestNew(t *testing.T) {
 				ioutil.WriteFile(test.customCredentials, []byte(`{"usernames":["admin"],"passwords":["admin"]}`), 0644)
 			}
 
-			if !test.loadRoutesFail && test.customRoutes == "" {
-				test.customRoutes = generateTmpFileName(i, "routes")
-				ioutil.WriteFile(test.customRoutes, []byte(`live.sdp`), 0644)
+			if !test.loadStreamsFail && test.customStreams == "" {
+				test.customStreams = generateTmpFileName(i, "streams")
+				ioutil.WriteFile(test.customStreams, []byte(`live.sdp`), 0644)
 			}
 
 			curl.TestGlobalFail = test.curlGlobalFail
@@ -123,7 +123,7 @@ func TestNew(t *testing.T) {
 				WithAttackInterval(test.attackInterval),
 				WithTimeout(test.timeout),
 				WithCustomCredentials(test.customCredentials),
-				WithCustomRoutes(test.customRoutes),
+				WithCustomStreams(test.customStreams),
 			)
 
 			if test.expectedErr {

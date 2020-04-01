@@ -30,11 +30,11 @@ type osFS struct{}
 func (osFS) Open(name string) (file, error)        { return os.Open(name) }
 func (osFS) Stat(name string) (os.FileInfo, error) { return os.Stat(name) }
 
-// LoadRoutes opens a dictionary file and returns its contents as a Routes structure.
-func (s *Scanner) LoadRoutes() error {
-	s.term.Debugf("Loading routes dictionary from path %q\n", s.routeDictionaryPath)
+// LoadStreams opens a dictionary file and returns its contents as a Streams structure.
+func (s *Scanner) LoadStreams() error {
+	s.term.Debugf("Loading streams dictionary from path %q\n", s.streamDictionaryPath)
 
-	file, err := os.Open(s.routeDictionaryPath)
+	file, err := os.Open(s.streamDictionaryPath)
 	if err != nil {
 		return fmt.Errorf("unable to open dictionary: %v", err)
 	}
@@ -42,16 +42,16 @@ func (s *Scanner) LoadRoutes() error {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		s.routes = append(s.routes, scanner.Text())
+		s.streams = append(s.streams, scanner.Text())
 	}
 
-	s.term.Debugf("Loaded %d routes\n", len(s.routes))
+	s.term.Debugf("Loaded %d streams\n", len(s.streams))
 
 	return scanner.Err()
 }
 
-// ParseRoutesFromString parses a dictionary string and returns its contents as a Routes structure.
-func ParseRoutesFromString(content string) Routes {
+// ParseStreamsFromString parses a dictionary string and returns its contents as a Streams structure.
+func ParseStreamsFromString(content string) Streams {
 	return strings.Split(content, "\n")
 }
 
