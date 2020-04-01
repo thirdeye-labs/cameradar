@@ -47,6 +47,22 @@ func (s *Scanner) scan(nmapScanner nmap.ScanRunner) ([]Device, error) {
 	// Get devices from nmap results.
 	var devices []Device
 	for _, host := range results.Hosts {
+		// When running in local network (via docker's --network host), MAC address get's added to Addresses slice so removing this
+		// eg.
+		//  Addresses: ([]nmap.Address) (len=2 cap=2) {
+		//  (nmap.Address) 192.168.0.76,
+		//  (nmap.Address) 00:16:6C:D7:C5:DA
+		// There must be a better way, maybe using nmap settings to make sure MAC is not stored 
+
+		tmp_addresses := host.Addresses
+		// emptying the slice
+		host.Addresses = append(host.Addresses[:0])
+		for _, address := range tmp_addresses {
+			if strings.Count(address.Addr, ":") < 2 {
+				host.Addresses = append(host.Addresses, address)
+			}
+		}
+
 		for _, port := range host.Ports {
 			if port.Status() != "open" {
 				continue

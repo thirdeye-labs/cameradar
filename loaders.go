@@ -2,7 +2,6 @@ package cameradar
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -31,26 +30,6 @@ type osFS struct{}
 func (osFS) Open(name string) (file, error)        { return os.Open(name) }
 func (osFS) Stat(name string) (os.FileInfo, error) { return os.Stat(name) }
 
-// LoadCredentials opens a dictionary file and returns its contents as a Credentials structure.
-func (s *Scanner) LoadCredentials() error {
-	s.term.Debugf("Loading credentials dictionary from path %q\n", s.credentialDictionaryPath)
-
-	// Open & Read XML file.
-	content, err := ioutil.ReadFile(s.credentialDictionaryPath)
-	if err != nil {
-		return fmt.Errorf("could not read credentials dictionary file at %q: %v", s.credentialDictionaryPath, err)
-	}
-
-	// Unmarshal content of JSON file into data structure.
-	err = json.Unmarshal(content, &s.credentials)
-	if err != nil {
-		return fmt.Errorf("unable to unmarshal dictionary contents: %v", err)
-	}
-
-	s.term.Debugf("Loaded %d usernames and %d passwords\n", len(s.credentials.Usernames), len(s.credentials.Passwords))
-	return nil
-}
-
 // LoadRoutes opens a dictionary file and returns its contents as a Routes structure.
 func (s *Scanner) LoadRoutes() error {
 	s.term.Debugf("Loading routes dictionary from path %q\n", s.routeDictionaryPath)
@@ -69,19 +48,6 @@ func (s *Scanner) LoadRoutes() error {
 	s.term.Debugf("Loaded %d routes\n", len(s.routes))
 
 	return scanner.Err()
-}
-
-// ParseCredentialsFromString parses a dictionary string and returns its contents as a Credentials structure.
-func ParseCredentialsFromString(content string) (Credentials, error) {
-	var creds Credentials
-
-	// Unmarshal content of JSON file into data structure.
-	err := json.Unmarshal([]byte(content), &creds)
-	if err != nil {
-		return creds, err
-	}
-
-	return creds, nil
 }
 
 // ParseRoutesFromString parses a dictionary string and returns its contents as a Routes structure.
