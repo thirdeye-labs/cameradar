@@ -7,57 +7,57 @@ import (
 )
 
 func TestReplace(t *testing.T) {
-	validStream1 := Stream{
+	validDevice1 := Device{
 		Device:  "fakeDevice",
 		Address: "fakeAddress",
 		Port:    1,
 	}
 
-	validStream2 := Stream{
+	validDevice2 := Device{
 		Device:  "fakeDevice",
 		Address: "differentFakeAddress",
 		Port:    2,
 	}
 
-	invalidStream := Stream{
+	invalidDevice := Device{
 		Device:  "invalidDevice",
 		Address: "anotherFakeAddress",
 		Port:    3,
 	}
 
-	invalidStreamModified := Stream{
+	invalidDeviceModified := Device{
 		Device:  "updatedDevice",
 		Address: "anotherFakeAddress",
 		Port:    3,
 	}
 
 	testCases := []struct {
-		streams   []Stream
-		newStream Stream
+		devices   []Device
+		newDevice Device
 
-		expectedStreams []Stream
+		expectedDevices []Device
 	}{
 		{
-			streams:   []Stream{validStream1, validStream2, invalidStream},
-			newStream: invalidStreamModified,
+			devices:   []Device{validDevice1, validDevice2, invalidDevice},
+			newDevice: invalidDeviceModified,
 
-			expectedStreams: []Stream{validStream1, validStream2, invalidStreamModified},
+			expectedDevices: []Device{validDevice1, validDevice2, invalidDeviceModified},
 		},
 	}
 
 	for _, test := range testCases {
-		streams := replace(test.streams, test.newStream)
+		devices := replace(test.devices, test.newDevice)
 
-		assert.Equal(t, len(test.expectedStreams), len(streams))
+		assert.Equal(t, len(test.expectedDevices), len(devices))
 
-		for _, expectedStream := range test.expectedStreams {
-			assert.Contains(t, streams, expectedStream)
+		for _, expectedDevice := range test.expectedDevices {
+			assert.Contains(t, devices, expectedDevice)
 		}
 	}
 }
 
 func TestGetCameraRTSPURL(t *testing.T) {
-	validStream := Stream{
+	validDevice := Device{
 		Address:  "1.2.3.4",
 		Username: "ullaakut",
 		Password: "ba69897483886f0d2b0afb6345b76c0c",
@@ -66,40 +66,40 @@ func TestGetCameraRTSPURL(t *testing.T) {
 	}
 
 	testCases := []struct {
-		stream Stream
+		device Device
 
 		expectedRTSPURL string
 	}{
 		{
-			stream: validStream,
+			device: validDevice,
 
 			expectedRTSPURL: "rtsp://ullaakut:ba69897483886f0d2b0afb6345b76c0c@1.2.3.4:1337/cameradar.sdp",
 		},
 	}
 
 	for _, test := range testCases {
-		assert.Equal(t, test.expectedRTSPURL, GetCameraRTSPURL(test.stream))
+		assert.Equal(t, test.expectedRTSPURL, GetCameraRTSPURL(test.device))
 	}
 }
 
 func TestGetCameraAdminPanelURL(t *testing.T) {
-	validStream := Stream{
+	validDevice := Device{
 		Address: "1.2.3.4",
 	}
 
 	testCases := []struct {
-		stream Stream
+		device Device
 
 		expectedRTSPURL string
 	}{
 		{
-			stream: validStream,
+			device: validDevice,
 
 			expectedRTSPURL: "http://1.2.3.4/",
 		},
 	}
 
 	for _, test := range testCases {
-		assert.Equal(t, test.expectedRTSPURL, GetCameraAdminPanelURL(test.stream))
+		assert.Equal(t, test.expectedRTSPURL, GetCameraAdminPanelURL(test.device))
 	}
 }

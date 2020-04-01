@@ -27,25 +27,25 @@ func (m *nmapMock) Run() (*nmap.Run, []string, error) {
 }
 
 var (
-	validStream1 = Stream{
+	validDevice1 = Device{
 		Device:  "fakeDevice",
 		Address: "fakeAddress",
 		Port:    1337,
 	}
 
-	validStream2 = Stream{
+	validDevice2 = Device{
 		Device:  "fakeDevice",
 		Address: "differentFakeAddress",
 		Port:    1337,
 	}
 
-	invalidStreamNoPort = Stream{
+	invalidDeviceNoPort = Device{
 		Device:  "invalidDevice",
 		Address: "fakeAddress",
 		Port:    0,
 	}
 
-	invalidStreamNoAddress = Stream{
+	invalidDeviceNoAddress = Device{
 		Device:  "invalidDevice",
 		Address: "",
 		Port:    1337,
@@ -62,7 +62,7 @@ func TestScan(t *testing.T) {
 		removePath bool
 
 		expectedErr     error
-		expectedStreams []Stream
+		expectedDevices []Device
 	}{
 		{
 			description: "create new scanner and call scan, no error",
@@ -97,7 +97,7 @@ func TestScan(t *testing.T) {
 			result, err := scanner.Scan()
 
 			assert.Equal(t, test.expectedErr, err)
-			assert.Equal(t, test.expectedStreams, result)
+			assert.Equal(t, test.expectedDevices, result)
 		})
 	}
 }
@@ -111,18 +111,18 @@ func TestInternalScan(t *testing.T) {
 		nmapWarnings []string
 		nmapError    error
 
-		expectedStreams []Stream
+		expectedDevices []Device
 		expectedErr     error
 	}{
 		{
-			description: "valid streams",
+			description: "valid devices",
 
 			nmapResult: &nmap.Run{
 				Hosts: []nmap.Host{
 					{
 						Addresses: []nmap.Address{
 							{
-								Addr: validStream1.Address,
+								Addr: validDevice1.Address,
 							},
 						},
 						Ports: []nmap.Port{
@@ -130,10 +130,10 @@ func TestInternalScan(t *testing.T) {
 								State: nmap.State{
 									State: "open",
 								},
-								ID: validStream1.Port,
+								ID: validDevice1.Port,
 								Service: nmap.Service{
 									Name:    "rtsp",
-									Product: validStream1.Device,
+									Product: validDevice1.Device,
 								},
 							},
 						},
@@ -141,7 +141,7 @@ func TestInternalScan(t *testing.T) {
 					{
 						Addresses: []nmap.Address{
 							{
-								Addr: validStream2.Address,
+								Addr: validDevice2.Address,
 							},
 						},
 						Ports: []nmap.Port{
@@ -149,10 +149,10 @@ func TestInternalScan(t *testing.T) {
 								State: nmap.State{
 									State: "open",
 								},
-								ID: validStream2.Port,
+								ID: validDevice2.Port,
 								Service: nmap.Service{
 									Name:    "rtsp-alt",
-									Product: validStream2.Device,
+									Product: validDevice2.Device,
 								},
 							},
 						},
@@ -160,7 +160,7 @@ func TestInternalScan(t *testing.T) {
 				},
 			},
 
-			expectedStreams: []Stream{validStream1, validStream2},
+			expectedDevices: []Device{validDevice1, validDevice2},
 		},
 		{
 			description: "two invalid targets, no error",
@@ -170,7 +170,7 @@ func TestInternalScan(t *testing.T) {
 					{
 						Addresses: []nmap.Address{
 							{
-								Addr: invalidStreamNoPort.Address,
+								Addr: invalidDeviceNoPort.Address,
 							},
 						},
 					},
@@ -181,10 +181,10 @@ func TestInternalScan(t *testing.T) {
 								State: nmap.State{
 									State: "open",
 								},
-								ID: validStream2.Port,
+								ID: validDevice2.Port,
 								Service: nmap.Service{
 									Name:    "rtsp-alt",
-									Product: invalidStreamNoAddress.Device,
+									Product: invalidDeviceNoAddress.Device,
 								},
 							},
 						},
@@ -192,7 +192,7 @@ func TestInternalScan(t *testing.T) {
 				},
 			},
 
-			expectedStreams: nil,
+			expectedDevices: nil,
 		},
 		{
 			description: "different port states, no error",
@@ -202,17 +202,17 @@ func TestInternalScan(t *testing.T) {
 					{
 						Addresses: []nmap.Address{
 							{
-								Addr: invalidStreamNoPort.Address,
+								Addr: invalidDeviceNoPort.Address,
 							}},
 						Ports: []nmap.Port{
 							{
 								State: nmap.State{
 									State: "closed",
 								},
-								ID: validStream2.Port,
+								ID: validDevice2.Port,
 								Service: nmap.Service{
 									Name:    "rtsp-alt",
-									Product: invalidStreamNoAddress.Device,
+									Product: invalidDeviceNoAddress.Device,
 								},
 							},
 						},
@@ -220,17 +220,17 @@ func TestInternalScan(t *testing.T) {
 					{
 						Addresses: []nmap.Address{
 							{
-								Addr: invalidStreamNoPort.Address,
+								Addr: invalidDeviceNoPort.Address,
 							}},
 						Ports: []nmap.Port{
 							{
 								State: nmap.State{
 									State: "unfiltered",
 								},
-								ID: validStream2.Port,
+								ID: validDevice2.Port,
 								Service: nmap.Service{
 									Name:    "rtsp-alt",
-									Product: invalidStreamNoAddress.Device,
+									Product: invalidDeviceNoAddress.Device,
 								},
 							},
 						},
@@ -238,17 +238,17 @@ func TestInternalScan(t *testing.T) {
 					{
 						Addresses: []nmap.Address{
 							{
-								Addr: invalidStreamNoPort.Address,
+								Addr: invalidDeviceNoPort.Address,
 							}},
 						Ports: []nmap.Port{
 							{
 								State: nmap.State{
 									State: "filtered",
 								},
-								ID: validStream2.Port,
+								ID: validDevice2.Port,
 								Service: nmap.Service{
 									Name:    "rtsp-alt",
-									Product: invalidStreamNoAddress.Device,
+									Product: invalidDeviceNoAddress.Device,
 								},
 							},
 						},
@@ -256,7 +256,7 @@ func TestInternalScan(t *testing.T) {
 				},
 			},
 
-			expectedStreams: nil,
+			expectedDevices: nil,
 		},
 		{
 			description: "not rtsp, no error",
@@ -266,17 +266,17 @@ func TestInternalScan(t *testing.T) {
 					{
 						Addresses: []nmap.Address{
 							{
-								Addr: invalidStreamNoPort.Address,
+								Addr: invalidDeviceNoPort.Address,
 							}},
 						Ports: []nmap.Port{
 							{
 								State: nmap.State{
 									State: "open",
 								},
-								ID: validStream2.Port,
+								ID: validDevice2.Port,
 								Service: nmap.Service{
 									Name:    "tcp",
-									Product: invalidStreamNoAddress.Device,
+									Product: invalidDeviceNoAddress.Device,
 								},
 							},
 						},
@@ -284,13 +284,13 @@ func TestInternalScan(t *testing.T) {
 				},
 			},
 
-			expectedStreams: nil,
+			expectedDevices: nil,
 		},
 		{
 			description: "no hosts found",
 
 			nmapResult:      &nmap.Run{},
-			expectedStreams: nil,
+			expectedDevices: nil,
 		},
 		{
 			description: "scan failed",
@@ -314,8 +314,8 @@ func TestInternalScan(t *testing.T) {
 			results, err := scanner.scan(nmapMock)
 
 			assert.Equal(t, test.expectedErr, err)
-			assert.Equal(t, test.expectedStreams, results, "wrong streams parsed")
-			assert.Equal(t, len(test.expectedStreams), len(results), "wrong streams parsed")
+			assert.Equal(t, test.expectedDevices, results, "wrong devices parsed")
+			assert.Equal(t, len(test.expectedDevices), len(results), "wrong devices parsed")
 
 			nmapMock.AssertExpectations(t)
 		})

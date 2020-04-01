@@ -125,7 +125,7 @@ func TestLoadCredentials(t *testing.T) {
 			expectedErr: errors.New("unable to unmarshal dictionary contents: invalid character 'o' in literal null (expecting 'u')"),
 		},
 		{
-			description: "No streams in dictionary",
+			description: "No devices in dictionary",
 
 			fileExists: true,
 			input:      []byte("{\"invalid\":\"json\"}"),
@@ -197,7 +197,7 @@ func TestLoadRoutes(t *testing.T) {
 			expectedErr: errors.New("unable to open dictionary: open /tmp/cameradar_test_load_routes_1.xml: no such file or directory"),
 		},
 		{
-			description: "No streams in dictionary",
+			description: "No devices in dictionary",
 
 			fileExists: true,
 			input:      []byte(""),

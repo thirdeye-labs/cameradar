@@ -2,8 +2,8 @@ package cameradar
 
 import "time"
 
-// Stream represents a camera's RTSP stream
-type Stream struct {
+// Device represents a camera's RTSP device
+type Device struct {
 	Device   string `json:"device"`
 	Username string `json:"username"`
 	Password string `json:"password"`

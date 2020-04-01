@@ -18,8 +18,8 @@ func parseArguments() error {
 	viper.SetEnvPrefix("cameradar")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
-	pflag.StringSliceP("targets", "t", []string{}, "The targets on which to scan for open RTSP streams - required (ex: 172.16.100.0/24)")
-	pflag.StringSliceP("ports", "p", []string{"554", "5554", "8554"}, "The ports on which to search for RTSP streams")
+	pflag.StringSliceP("targets", "t", []string{}, "The targets on which to scan for open RTSP devices - required (ex: 172.16.100.0/24)")
+	pflag.StringSliceP("ports", "p", []string{"554", "5554", "8554"}, "The ports on which to search for RTSP devices")
 	pflag.StringP("custom-routes", "r", "${GOPATH}/src/github.com/Ullaakut/cameradar/dictionaries/routes", "The path on which to load a custom routes dictionary")
 	pflag.StringP("custom-credentials", "c", "${GOPATH}/src/github.com/Ullaakut/cameradar/dictionaries/credentials.json", "The path on which to load a custom credentials JSON dictionary")
 	pflag.IntP("scan-speed", "s", 4, "The nmap speed preset to use for scanning (lower is stealthier)")
@@ -41,7 +41,7 @@ func parseArguments() error {
 	if viper.GetBool("help") {
 		pflag.Usage()
 		fmt.Println("\nExamples of usage:")
-		fmt.Println("\tScanning your home network for RTSP streams:\tcameradar -t 192.168.0.0/24")
+		fmt.Println("\tScanning your home network for RTSP devices:\tcameradar -t 192.168.0.0/24")
 		fmt.Println("\tScanning a remote camera on a specific port:\tcameradar -t 172.178.10.14 -p 18554 -s 2")
 		fmt.Println("\tScanning an unstable remote network: \t\tcameradar -t 172.178.10.14/24 -s 1 --timeout 10000 -l")
 		fmt.Println("\tStealthily scanning a remote network: \t\tcameradar -t 172.178.10.14/24 -s 1 -I 5000")
@@ -82,12 +82,12 @@ func main() {
 		printErr(err)
 	}
 
-	streams, err := c.Attack(scanResult)
+	devices, err := c.Attack(scanResult)
 	if err != nil {
 		printErr(err)
 	}
 
-	c.PrintStreams(streams)
+	c.PrintDevices(devices)
 }
 
 func printErr(err error) {

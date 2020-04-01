@@ -9,59 +9,59 @@ import (
 )
 
 var (
-	unavailable = Stream{}
+	unavailable = Device{}
 
-	available = Stream{
+	available = Device{
 		Available: true,
 	}
 
-	deviceFound = Stream{
+	deviceFound = Device{
 		Device: "devicename",
 	}
 
-	noAuth = Stream{
+	noAuth = Device{
 		AuthenticationType: 0,
 	}
 
-	basic = Stream{
+	basic = Device{
 		AuthenticationType: 1,
 	}
 
-	digest = Stream{
+	digest = Device{
 		AuthenticationType: 2,
 	}
 
-	credsFound = Stream{
+	credsFound = Device{
 		CredentialsFound: true,
 		Username:         "us3r",
 		Password:         "p4ss",
 	}
 
-	routeFound = Stream{
+	routeFound = Device{
 		RouteFound: true,
 		Route:      "r0ute",
 	}
 )
 
-func TestPrintStreams(t *testing.T) {
+func TestPrintDevices(t *testing.T) {
 	tests := []struct {
 		description string
 
-		streams []Stream
+		devices []Device
 
 		expectedLogs []string
 	}{
 		{
-			description: "displays the proper message when no streams found",
+			description: "displays the proper message when no devices found",
 
-			streams: nil,
+			devices: nil,
 
-			expectedLogs: []string{"No streams were found"},
+			expectedLogs: []string{"No devices were found"},
 		},
 		{
-			description: "displays the admin panel URL when a stream is not accessible",
+			description: "displays the admin panel URL when a device is not accessible",
 
-			streams: []Stream{
+			devices: []Device{
 				unavailable,
 			},
 
@@ -70,7 +70,7 @@ func TestPrintStreams(t *testing.T) {
 		{
 			description: "displays the device name when it is found",
 
-			streams: []Stream{
+			devices: []Device{
 				deviceFound,
 			},
 
@@ -79,7 +79,7 @@ func TestPrintStreams(t *testing.T) {
 		{
 			description: "displays authentication type (no auth)",
 
-			streams: []Stream{
+			devices: []Device{
 				noAuth,
 			},
 
@@ -88,7 +88,7 @@ func TestPrintStreams(t *testing.T) {
 		{
 			description: "displays authentication type (basic)",
 
-			streams: []Stream{
+			devices: []Device{
 				basic,
 			},
 
@@ -97,7 +97,7 @@ func TestPrintStreams(t *testing.T) {
 		{
 			description: "displays authentication type (digest)",
 
-			streams: []Stream{
+			devices: []Device{
 				digest,
 			},
 
@@ -106,7 +106,7 @@ func TestPrintStreams(t *testing.T) {
 		{
 			description: "displays credentials properly",
 
-			streams: []Stream{
+			devices: []Device{
 				credsFound,
 			},
 
@@ -120,7 +120,7 @@ func TestPrintStreams(t *testing.T) {
 		{
 			description: "displays route properly",
 
-			streams: []Stream{
+			devices: []Device{
 				routeFound,
 			},
 
@@ -132,18 +132,18 @@ func TestPrintStreams(t *testing.T) {
 		{
 			description: "displays successes properly (no success)",
 
-			streams: []Stream{
+			devices: []Device{
 				unavailable,
 			},
 
 			expectedLogs: []string{
-				"Streams were found but none were accessed",
+				"Devices were found but none were accessed",
 			},
 		},
 		{
 			description: "displays successes properly (1 success)",
 
-			streams: []Stream{
+			devices: []Device{
 				available,
 			},
 
@@ -155,7 +155,7 @@ func TestPrintStreams(t *testing.T) {
 		{
 			description: "displays successes properly (multiple successes)",
 
-			streams: []Stream{
+			devices: []Device{
 				available,
 				available,
 				available,
@@ -176,7 +176,7 @@ func TestPrintStreams(t *testing.T) {
 				term: disgo.NewTerminal(disgo.WithDefaultOutput(writer)),
 			}
 
-			scanner.PrintStreams(test.streams)
+			scanner.PrintDevices(test.devices)
 
 			for _, expectedLog := range test.expectedLogs {
 				assert.Contains(t, writer.String(), expectedLog)

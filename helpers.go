@@ -2,10 +2,10 @@ package cameradar
 
 import "fmt"
 
-func replace(streams []Stream, new Stream) []Stream {
-	var updatedSlice []Stream
+func replace(devices []Device, new Device) []Device {
+	var updatedSlice []Device
 
-	for _, old := range streams {
+	for _, old := range devices {
 		if old.Address == new.Address && old.Port == new.Port {
 			updatedSlice = append(updatedSlice, new)
 		} else {
@@ -16,12 +16,12 @@ func replace(streams []Stream, new Stream) []Stream {
 	return updatedSlice
 }
 
-// GetCameraRTSPURL generates a stream's RTSP URL.
-func GetCameraRTSPURL(stream Stream) string {
-	return "rtsp://" + stream.Username + ":" + stream.Password + "@" + stream.Address + ":" + fmt.Sprint(stream.Port) + "/" + stream.Route
+// GetCameraRTSPURL generates a device's RTSP URL.
+func GetCameraRTSPURL(device Device) string {
+	return "rtsp://" + device.Username + ":" + device.Password + "@" + device.Address + ":" + fmt.Sprint(device.Port) + "/" + device.Route
 }
 
 // GetCameraAdminPanelURL returns the URL to the camera's admin panel.
-func GetCameraAdminPanelURL(stream Stream) string {
-	return "http://" + stream.Address + "/"
+func GetCameraAdminPanelURL(device Device) string {
+	return "http://" + device.Address + "/"
 }

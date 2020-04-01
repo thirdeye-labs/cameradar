@@ -6,7 +6,7 @@ import (
 	"github.com/Ullaakut/nmap"
 )
 
-// Scan scans the target networks and tries to find RTSP streams within them.
+// Scan scans the target networks and tries to find RTSP devices within them.
 //
 // targets can be:
 //
@@ -18,7 +18,7 @@ import (
 // ports can be:
 //
 //    - one or multiple ports and port ranges separated by commas (e.g.: 554,8554-8560,18554-28554)
-func (s *Scanner) Scan() ([]Stream, error) {
+func (s *Scanner) Scan() ([]Device, error) {
 	s.term.StartStep("Scanning the network")
 
 	// Run nmap command to discover open ports on the specified targets & ports.
@@ -34,7 +34,7 @@ func (s *Scanner) Scan() ([]Stream, error) {
 	return s.scan(nmapScanner)
 }
 
-func (s *Scanner) scan(nmapScanner nmap.ScanRunner) ([]Stream, error) {
+func (s *Scanner) scan(nmapScanner nmap.ScanRunner) ([]Device, error) {
 	results, warnings, err := nmapScanner.Run()
 	if err != nil {
 		return nil, s.term.FailStepf("error while scanning network: %v", err)
@@ -44,8 +44,8 @@ func (s *Scanner) scan(nmapScanner nmap.ScanRunner) ([]Stream, error) {
 		s.term.Infoln("[Nmap Warning]", warning)
 	}
 
-	// Get streams from nmap results.
-	var streams []Stream
+	// Get devices from nmap results.
+	var devices []Device
 	for _, host := range results.Hosts {
 		for _, port := range host.Ports {
 			if port.Status() != "open" {
@@ -57,7 +57,7 @@ func (s *Scanner) scan(nmapScanner nmap.ScanRunner) ([]Stream, error) {
 			}
 
 			for _, address := range host.Addresses {
-				streams = append(streams, Stream{
+				devices = append(devices, Device{
 					Device:  port.Service.Product,
 					Address: address.Addr,
 					Port:    port.ID,
@@ -66,9 +66,9 @@ func (s *Scanner) scan(nmapScanner nmap.ScanRunner) ([]Stream, error) {
 		}
 	}
 
-	s.term.Debugf("Found %d RTSP streams\n", len(streams))
+	s.term.Debugf("Found %d RTSP devices\n", len(devices))
 
 	s.term.EndStep()
 
-	return streams, nil
+	return devices, nil
 }

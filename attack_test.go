@@ -37,19 +37,19 @@ func (m *CurlerMock) Duphandle() Curler {
 
 func TestAttack(t *testing.T) {
 	var (
-		stream1 = Stream{
+		device1 = Device{
 			Device:  "fakeDevice",
 			Address: "fakeAddress",
 			Port:    1337,
 		}
 
-		stream2 = Stream{
+		device2 = Device{
 			Device:  "fakeDevice",
 			Address: "differentFakeAddress",
 			Port:    1337,
 		}
 
-		fakeTargets     = []Stream{stream1, stream2}
+		fakeTargets     = []Device{device1, device2}
 		fakeRoutes      = Routes{"live.sdp", "media.amp"}
 		fakeCredentials = Credentials{
 			Usernames: []string{"admin", "root"},
@@ -60,11 +60,11 @@ func TestAttack(t *testing.T) {
 	tests := []struct {
 		description string
 
-		targets []Stream
+		targets []Device
 
 		performErr error
 
-		expectedStreams []Stream
+		expectedDevices []Device
 		expectedErr     error
 	}{
 		{
@@ -74,21 +74,21 @@ func TestAttack(t *testing.T) {
 
 			performErr: errors.New("dummy error"),
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "attack works",
 
 			targets: fakeTargets,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "no targets",
 
 			targets: nil,
 
-			expectedStreams: nil,
+			expectedDevices: nil,
 			expectedErr:     errors.New("unable to attack empty list of targets"),
 		},
 	}
@@ -118,7 +118,7 @@ func TestAttack(t *testing.T) {
 
 			assert.Equal(t, test.expectedErr, err)
 
-			assert.Len(t, results, len(test.expectedStreams))
+			assert.Len(t, results, len(test.expectedDevices))
 
 			curlerMock.AssertExpectations(t)
 		})
@@ -127,21 +127,21 @@ func TestAttack(t *testing.T) {
 
 func TestAttackCredentials(t *testing.T) {
 	var (
-		stream1 = Stream{
+		device1 = Device{
 			Device:    "fakeDevice",
 			Address:   "fakeAddress",
 			Port:      1337,
 			Available: true,
 		}
 
-		stream2 = Stream{
+		device2 = Device{
 			Device:    "fakeDevice",
 			Address:   "differentFakeAddress",
 			Port:      1337,
 			Available: true,
 		}
 
-		fakeTargets     = []Stream{stream1, stream2}
+		fakeTargets     = []Device{device1, device2}
 		fakeCredentials = Credentials{
 			Usernames: []string{"admin", "root"},
 			Passwords: []string{"12345", "root"},
@@ -151,7 +151,7 @@ func TestAttackCredentials(t *testing.T) {
 	tests := []struct {
 		description string
 
-		targets     []Stream
+		targets     []Device
 		credentials Credentials
 		timeout     time.Duration
 		verbose     bool
@@ -162,7 +162,7 @@ func TestAttackCredentials(t *testing.T) {
 		getInfoErr     error
 		invalidTargets bool
 
-		expectedStreams []Stream
+		expectedDevices []Device
 	}{
 		{
 			description: "Credentials found",
@@ -173,7 +173,7 @@ func TestAttackCredentials(t *testing.T) {
 
 			status: 404,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "Camera accessed",
@@ -184,7 +184,7 @@ func TestAttackCredentials(t *testing.T) {
 
 			status: 200,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "curl perform fails",
@@ -195,7 +195,7 @@ func TestAttackCredentials(t *testing.T) {
 
 			performErr: errors.New("dummy error"),
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "curl getinfo fails",
@@ -206,7 +206,7 @@ func TestAttackCredentials(t *testing.T) {
 
 			getInfoErr: errors.New("dummy error"),
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "Verbose mode disabled",
@@ -218,7 +218,7 @@ func TestAttackCredentials(t *testing.T) {
 
 			status: 403,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "Verbose mode enabled",
@@ -230,7 +230,7 @@ func TestAttackCredentials(t *testing.T) {
 
 			status: 403,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 	}
 
@@ -256,7 +256,7 @@ func TestAttackCredentials(t *testing.T) {
 
 			results := scanner.AttackCredentials(test.targets)
 
-			assert.Len(t, results, len(test.expectedStreams))
+			assert.Len(t, results, len(test.expectedDevices))
 
 			curlerMock.AssertExpectations(t)
 		})
@@ -265,28 +265,28 @@ func TestAttackCredentials(t *testing.T) {
 
 func TestAttackRoute(t *testing.T) {
 	var (
-		stream1 = Stream{
+		device1 = Device{
 			Device:    "fakeDevice",
 			Address:   "fakeAddress",
 			Port:      1337,
 			Available: true,
 		}
 
-		stream2 = Stream{
+		device2 = Device{
 			Device:    "fakeDevice",
 			Address:   "differentFakeAddress",
 			Port:      1337,
 			Available: true,
 		}
 
-		fakeTargets = []Stream{stream1, stream2}
+		fakeTargets = []Device{device1, device2}
 		fakeRoutes  = Routes{"live.sdp", "media.amp"}
 	)
 
 	tests := []struct {
 		description string
 
-		targets []Stream
+		targets []Device
 		routes  Routes
 		timeout time.Duration
 		verbose bool
@@ -297,7 +297,7 @@ func TestAttackRoute(t *testing.T) {
 		getInfoErr     error
 		invalidTargets bool
 
-		expectedStreams []Stream
+		expectedDevices []Device
 		expectedErr     error
 	}{
 		{
@@ -309,7 +309,7 @@ func TestAttackRoute(t *testing.T) {
 
 			status: 403,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "Route found",
@@ -320,7 +320,7 @@ func TestAttackRoute(t *testing.T) {
 
 			status: 401,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "Camera accessed",
@@ -331,7 +331,7 @@ func TestAttackRoute(t *testing.T) {
 
 			status: 200,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "curl perform fails",
@@ -342,7 +342,7 @@ func TestAttackRoute(t *testing.T) {
 
 			performErr: errors.New("dummy error"),
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "curl getinfo fails",
@@ -353,7 +353,7 @@ func TestAttackRoute(t *testing.T) {
 
 			getInfoErr: errors.New("dummy error"),
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "verbose mode disabled",
@@ -363,7 +363,7 @@ func TestAttackRoute(t *testing.T) {
 			timeout: 1 * time.Millisecond,
 			verbose: false,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "verbose mode enabled",
@@ -373,7 +373,7 @@ func TestAttackRoute(t *testing.T) {
 			timeout: 1 * time.Millisecond,
 			verbose: true,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 	}
 
@@ -399,36 +399,36 @@ func TestAttackRoute(t *testing.T) {
 
 			results := scanner.AttackRoute(test.targets)
 
-			assert.Len(t, results, len(test.expectedStreams))
+			assert.Len(t, results, len(test.expectedDevices))
 
 			curlerMock.AssertExpectations(t)
 		})
 	}
 }
 
-func TestValidateStreams(t *testing.T) {
+func TestValidateDevices(t *testing.T) {
 	var (
-		stream1 = Stream{
+		device1 = Device{
 			Device:    "fakeDevice",
 			Address:   "fakeAddress",
 			Port:      1337,
 			Available: true,
 		}
 
-		stream2 = Stream{
+		device2 = Device{
 			Device:    "fakeDevice",
 			Address:   "differentFakeAddress",
 			Port:      1337,
 			Available: true,
 		}
 
-		fakeTargets = []Stream{stream1, stream2}
+		fakeTargets = []Device{device1, device2}
 	)
 
 	tests := []struct {
 		description string
 
-		targets []Stream
+		targets []Device
 		timeout time.Duration
 		verbose bool
 
@@ -437,7 +437,7 @@ func TestValidateStreams(t *testing.T) {
 		performErr error
 		getInfoErr error
 
-		expectedStreams []Stream
+		expectedDevices []Device
 	}{
 		{
 			description: "route found",
@@ -447,7 +447,7 @@ func TestValidateStreams(t *testing.T) {
 
 			status: 403,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "route found",
@@ -457,7 +457,7 @@ func TestValidateStreams(t *testing.T) {
 
 			status: 401,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "camera accessed",
@@ -467,17 +467,17 @@ func TestValidateStreams(t *testing.T) {
 
 			status: 200,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
-			description: "unavailable stream",
+			description: "unavailable device",
 
 			targets: fakeTargets,
 			timeout: 1 * time.Millisecond,
 
 			status: 400,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "curl perform fails",
@@ -487,7 +487,7 @@ func TestValidateStreams(t *testing.T) {
 
 			performErr: errors.New("dummy error"),
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "curl getinfo fails",
@@ -497,7 +497,7 @@ func TestValidateStreams(t *testing.T) {
 
 			getInfoErr: errors.New("dummy error"),
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "verbose disabled",
@@ -506,7 +506,7 @@ func TestValidateStreams(t *testing.T) {
 			timeout: 1 * time.Millisecond,
 			verbose: false,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "verbose enabled",
@@ -515,7 +515,7 @@ func TestValidateStreams(t *testing.T) {
 			timeout: 1 * time.Millisecond,
 			verbose: true,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 	}
 
@@ -536,12 +536,12 @@ func TestValidateStreams(t *testing.T) {
 				verbose: test.verbose,
 			}
 
-			results := scanner.ValidateStreams(test.targets)
+			results := scanner.ValidateDevices(test.targets)
 
-			assert.Equal(t, len(test.expectedStreams), len(results))
+			assert.Equal(t, len(test.expectedDevices), len(results))
 
-			for _, expectedStream := range test.expectedStreams {
-				assert.Contains(t, results, expectedStream)
+			for _, expectedDevice := range test.expectedDevices {
+				assert.Contains(t, results, expectedDevice)
 			}
 
 			curlerMock.AssertExpectations(t)
@@ -551,27 +551,27 @@ func TestValidateStreams(t *testing.T) {
 
 func TestDetectAuthenticationType(t *testing.T) {
 	var (
-		stream1 = Stream{
+		device1 = Device{
 			Device:    "fakeDevice",
 			Address:   "fakeAddress",
 			Port:      1337,
 			Available: true,
 		}
 
-		stream2 = Stream{
+		device2 = Device{
 			Device:    "fakeDevice",
 			Address:   "differentFakeAddress",
 			Port:      1337,
 			Available: true,
 		}
 
-		fakeTargets = []Stream{stream1, stream2}
+		fakeTargets = []Device{device1, device2}
 	)
 
 	tests := []struct {
 		description string
 
-		targets []Stream
+		targets []Device
 		timeout time.Duration
 		verbose bool
 
@@ -580,7 +580,7 @@ func TestDetectAuthenticationType(t *testing.T) {
 		performErr error
 		getInfoErr error
 
-		expectedStreams []Stream
+		expectedDevices []Device
 	}{
 		{
 			description: "no auth enabled",
@@ -590,7 +590,7 @@ func TestDetectAuthenticationType(t *testing.T) {
 
 			status: 0,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "basic auth enabled",
@@ -600,7 +600,7 @@ func TestDetectAuthenticationType(t *testing.T) {
 
 			status: 1,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "digest auth enabled",
@@ -610,7 +610,7 @@ func TestDetectAuthenticationType(t *testing.T) {
 
 			status: 2,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "curl getinfo fails",
@@ -620,7 +620,7 @@ func TestDetectAuthenticationType(t *testing.T) {
 
 			getInfoErr: errors.New("dummy error"),
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "curl perform fails",
@@ -630,7 +630,7 @@ func TestDetectAuthenticationType(t *testing.T) {
 
 			performErr: errors.New("dummy error"),
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "verbose disabled",
@@ -639,7 +639,7 @@ func TestDetectAuthenticationType(t *testing.T) {
 			timeout: 1 * time.Millisecond,
 			verbose: false,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 		{
 			description: "verbose enabled",
@@ -648,7 +648,7 @@ func TestDetectAuthenticationType(t *testing.T) {
 			timeout: 1 * time.Millisecond,
 			verbose: true,
 
-			expectedStreams: fakeTargets,
+			expectedDevices: fakeTargets,
 		},
 	}
 
@@ -671,10 +671,10 @@ func TestDetectAuthenticationType(t *testing.T) {
 
 			results := scanner.DetectAuthMethods(test.targets)
 
-			assert.Equal(t, len(test.expectedStreams), len(results))
+			assert.Equal(t, len(test.expectedDevices), len(results))
 
-			for _, expectedStream := range test.expectedStreams {
-				assert.Contains(t, results, expectedStream)
+			for _, expectedDevice := range test.expectedDevices {
+				assert.Contains(t, results, expectedDevice)
 			}
 
 			curlerMock.AssertExpectations(t)

@@ -5,31 +5,31 @@ import (
 	curl "github.com/Ullaakut/go-curl"
 )
 
-// PrintStreams prints information on each stream.
-func (s *Scanner) PrintStreams(streams []Stream) {
-	if len(streams) == 0 {
-		s.term.Infof("%s No streams were found. Please make sure that your target is on an accessible network.\n", style.Failure(style.SymbolCross))
+// Printeams prints information on each device.
+func (s *Scanner) PrintDevices(devices []Device) {
+	if len(devices) == 0 {
+		s.term.Infof("%s No devices were found. Please make sure that your target is on an accessible network.\n", style.Failure(style.SymbolCross))
 	}
 
 	success := 0
-	for _, stream := range streams {
-		if stream.Available {
-			s.term.Infof("%s\tDevice RTSP URL:\t%s\n", style.Success(style.SymbolRightTriangle), style.Link(GetCameraRTSPURL(stream)))
+	for _, device := range devices {
+		if device.Available {
+			s.term.Infof("%s\tDevice RTSP URL:\t%s\n", style.Success(style.SymbolRightTriangle), style.Link(GetCameraRTSPURL(device)))
 			s.term.Infof("\tAvailable:\t\t%s\n", style.Success(style.SymbolCheck))
 			success++
 		} else {
-			s.term.Infof("%s\tAdmin panel URL:\t%s You can use this URL to try attacking the camera's admin panel instead.\n", style.Failure(style.SymbolCross), style.Link(GetCameraAdminPanelURL(stream)))
+			s.term.Infof("%s\tAdmin panel URL:\t%s You can use this URL to try attacking the camera's admin panel instead.\n", style.Failure(style.SymbolCross), style.Link(GetCameraAdminPanelURL(device)))
 			s.term.Infof("\tAvailable:\t\t%s\n", style.Failure(style.SymbolCross))
 		}
 
-		if len(stream.Device) > 0 {
-			s.term.Infof("\tDevice model:\t\t%s\n\n", stream.Device)
+		if len(device.Device) > 0 {
+			s.term.Infof("\tDevice model:\t\t%s\n\n", device.Device)
 		}
 
-		s.term.Infof("\tIP address:\t\t%s\n", stream.Address)
-		s.term.Infof("\tRTSP port:\t\t%d\n", stream.Port)
+		s.term.Infof("\tIP address:\t\t%s\n", device.Address)
+		s.term.Infof("\tRTSP port:\t\t%d\n", device.Port)
 
-		switch stream.AuthenticationType {
+		switch device.AuthenticationType {
 		case curl.AUTH_NONE:
 			s.term.Infoln("\tThis camera does not require authentication")
 		case curl.AUTH_BASIC:
@@ -38,23 +38,23 @@ func (s *Scanner) PrintStreams(streams []Stream) {
 			s.term.Infoln("\tAuth type:\t\tdigest")
 		}
 
-		if stream.CredentialsFound {
-			s.term.Infof("\tUsername:\t\t%s\n", style.Success(stream.Username))
-			s.term.Infof("\tPassword:\t\t%s\n", style.Success(stream.Password))
+		if device.CredentialsFound {
+			s.term.Infof("\tUsername:\t\t%s\n", style.Success(device.Username))
+			s.term.Infof("\tPassword:\t\t%s\n", style.Success(device.Password))
 		} else {
 			s.term.Infof("\tUsername:\t\t%s\n", style.Failure("not found"))
 			s.term.Infof("\tPassword:\t\t%s\n", style.Failure("not found"))
 		}
 
-		if stream.RouteFound {
-			s.term.Infof("\tRTSP route:\t\t%s\n\n\n", style.Success("/"+stream.Route))
+		if device.RouteFound {
+			s.term.Infof("\tRTSP route:\t\t%s\n\n\n", style.Success("/"+device.Route))
 		} else {
 			s.term.Infof("\tRTSP route:\t\t%s\n\n\n", style.Failure("not found"))
 		}
 	}
 
 	if success > 1 {
-		s.term.Infof("%s Successful attack: %s devices were accessed", style.Success(style.SymbolCheck), style.Success(len(streams)))
+		s.term.Infof("%s Successful attack: %s devices were accessed", style.Success(style.SymbolCheck), style.Success(len(devices)))
 	} else if success == 1 {
 		s.term.Infof("%s Successful attack: %s device was accessed", style.Success(style.SymbolCheck), style.Success("one"))
 	} else {
