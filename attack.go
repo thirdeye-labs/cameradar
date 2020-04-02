@@ -43,29 +43,34 @@ func (s *Scanner) Attack(targets []Device) ([]Device, error) {
 	// But some cameras run GST RTSP Server which prioritizes 401 over 404 contrary to most cameras.
 	// For these cameras, running another stream attack will solve the problem.
 	for _, device := range devices {
-		if !device.StreamFound || !device.CredentialsFound || !device.Available {
+		if len(device.RtspStreams) == 0 {
 			s.term.StartStepf("Second round of attacks")
 			devices = s.AttackStream(devices)
 
 			s.term.StartStep("Validating that devices are accessible")
 			devices = s.ValidateDevices(devices)
 
-			break
+			break	
 		}
 	}
-
 	s.term.EndStep()
-
 	return devices, nil
 }
 
 // ValidateDevices tries to setup the device to validate whether or not it is available.
 func (s *Scanner) ValidateDevices(targets []Device) []Device {
-	for i := range targets {
-		targets[i].Available = s.validateDevice(targets[i])
-		time.Sleep(s.attackInterval)
+	resChan := make(chan Device)
+	defer close(resChan)
+
+	for _, target := range targets {
+		go s.validateDevice(target, resChan)
 	}
 
+	attackResults := []Device{}
+	for range targets {
+		attackResults = append(attackResults, <-resChan)
+	}
+	targets = attackResults
 	return targets
 }
 
@@ -86,13 +91,7 @@ func (s *Scanner) AttackCredentials(targets []Device) []Device {
 	for range targets {
 		attackResults = append(attackResults, <-resChan)
 	}
-
-	for i := range attackResults {
-		if attackResults[i].CredentialsFound {
-			targets = replace(targets, attackResults[i])
-		}
-	}
-
+	targets = attackResults
 	return targets
 }
 
@@ -112,24 +111,39 @@ func (s *Scanner) AttackStream(targets []Device) []Device {
 		attackResults = append(attackResults, <-resChan)
 	}
 
-	for i := range attackResults {
-		if attackResults[i].StreamFound {
-			targets = replace(targets, attackResults[i])
-		}
-	}
-
+//	for i := range attackResults {
+//		if attackResults[i].StreamFound {
+//			targets = replace(targets, attackResults[i])
+//		}
+//	}
+	targets = attackResults
 	return targets
 }
 
 // DetectAuthMethods attempts to guess the provided targets' authentication types, between
 // digest, basic auth or none at all.
 func (s *Scanner) DetectAuthMethods(targets []Device) []Device {
-	for i := range targets {
-		targets[i].AuthenticationType = s.detectAuthMethod(targets[i])
+	resChan := make(chan Device)
+	defer close(resChan)
+	for _, target := range targets {
+		go s.detectAuthMethod(target, resChan)
 		time.Sleep(s.attackInterval)
+	}
 
+	attackResults := []Device{}
+	// TODO: Change this into a for+select and make a successful result close the chan.
+	for range targets {
+		attackResults = append(attackResults, <-resChan)
+	}
+	targets = attackResults
+	return targets
+}
+
+func (s *Scanner) detectAuthMethod (target Device, resChan chan<- Device) {
+	for i := range target.RtspStreams{
+		target.RtspStreams[i].AuthenticationType = s.AuthMethodAttack(target, i)
 		var authMethod string
-		switch targets[i].AuthenticationType {
+		switch target.RtspStreams[i].AuthenticationType {
 		case 0:
 			authMethod = "no"
 		case 1:
@@ -137,56 +151,55 @@ func (s *Scanner) DetectAuthMethods(targets []Device) []Device {
 		case 2:
 			authMethod = "digest"
 		}
-
-		s.term.Debugf("Device %s uses %s authentication method\n", GetCameraRTSPURL(targets[i]), authMethod)
+		s.term.Debugf("Device %s uses %s authentication method\n", GetCameraRTSPURL(target, i), authMethod)
+		time.Sleep(s.attackInterval)
 	}
-
-	return targets
+	resChan <- target 
 }
 
-func (s *Scanner) attackCameraCredentials(target Device, resChan chan<- Device) {
-	for _, username := range s.credentials.Usernames {
-		for _, password := range s.credentials.Passwords {
-			ok := s.credAttack(target, username, password)
-			if ok {
-				target.CredentialsFound = true
-				target.Username = username
-				target.Password = password
-				resChan <- target
-				return
-			}
-			time.Sleep(s.attackInterval)
-		}
-	}
 
-	target.CredentialsFound = false
+func (s *Scanner) attackCameraCredentials(target Device, resChan chan<- Device) {
+	for i := range target.RtspStreams {
+		ok := s.credAttack(target, i)
+
+		if ok {
+			target.RtspStreams[i].CredentialsFound = true
+		} else {
+			target.RtspStreams[i].CredentialsFound = false
+		}
+		time.Sleep(s.attackInterval)
+	}
 	resChan <- target
 }
 
 func (s *Scanner) attackCameraStream(target Device, resChan chan<- Device) {
+	var r rtspStream
+
 	for _, stream := range s.streams {
 		ok := s.streamAttack(target, stream)
 		if ok {
-			target.StreamFound = true
-			target.Stream = stream
-			resChan <- target
-			return
+			r.Stream = stream
+			r.CredentialsFound = false
+			r.Available = false
+
+			target.RtspStreams = append(target.RtspStreams, r)
 		}
 		time.Sleep(s.attackInterval)
 	}
-
-	target.StreamFound = false
+	target.Password = s.password
+	target.Username = s.username
+	
 	resChan <- target
 }
 
-func (s *Scanner) detectAuthMethod(device Device) int {
+func (s *Scanner) AuthMethodAttack(device Device, i int) int {
 	c := s.curl.Duphandle()
 
 	attackURL := fmt.Sprintf(
 		"rtsp://%s:%d/%s",
 		device.Address,
 		device.Port,
-		device.Stream,
+		device.RtspStreams[i].Stream,
 	)
 
 	s.setCurlOptions(c)
@@ -200,7 +213,7 @@ func (s *Scanner) detectAuthMethod(device Device) int {
 	// Perform the request.
 	err := c.Perform()
 	if err != nil {
-		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, device.AuthenticationType, err)
+		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, device.RtspStreams[i].AuthenticationType, err)
 		return -1
 	}
 
@@ -229,10 +242,16 @@ func (s *Scanner) streamAttack(device Device, stream string) bool {
 		stream,
 	)
 
+	var aType int
+	for _, s := range device.RtspStreams{
+		if s.Stream == stream {
+			aType = s.AuthenticationType
+		}
+	}
 	s.setCurlOptions(c)
 
 	// Set proper authentication type.
-	_ = c.Setopt(curl.OPT_HTTPAUTH, device.AuthenticationType)
+	_ = c.Setopt(curl.OPT_HTTPAUTH, aType)
 	_ = c.Setopt(curl.OPT_USERPWD, fmt.Sprint(device.Username, ":", device.Password))
 
 	// Send a request to the URL of the device we want to attack.
@@ -244,7 +263,7 @@ func (s *Scanner) streamAttack(device Device, stream string) bool {
 	// Perform the request.
 	err := c.Perform()
 	if err != nil {
-		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, device.AuthenticationType, err)
+		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, aType, err)
 		return false
 	}
 
@@ -266,23 +285,23 @@ func (s *Scanner) streamAttack(device Device, stream string) bool {
 	return false
 }
 
-func (s *Scanner) credAttack(device Device, username string, password string) bool {
+func (s *Scanner) credAttack(device Device, i int) bool {
 	c := s.curl.Duphandle()
 
 	attackURL := fmt.Sprintf(
 		"rtsp://%s:%s@%s:%d/%s",
-		username,
-		password,
+		device.Username,
+		device.Password,
 		device.Address,
 		device.Port,
-		device.Stream,
+		device.RtspStreams[i].Stream,
 	)
 
 	s.setCurlOptions(c)
 
 	// Set proper authentication type.
-	_ = c.Setopt(curl.OPT_HTTPAUTH, device.AuthenticationType)
-	_ = c.Setopt(curl.OPT_USERPWD, fmt.Sprint(username, ":", password))
+	_ = c.Setopt(curl.OPT_HTTPAUTH, device.RtspStreams[i].AuthenticationType)
+	_ = c.Setopt(curl.OPT_USERPWD, fmt.Sprint(device.Username, ":", device.Password))
 
 	// Send a request to the URL of the device we want to attack.
 	_ = c.Setopt(curl.OPT_URL, attackURL)
@@ -293,7 +312,7 @@ func (s *Scanner) credAttack(device Device, username string, password string) bo
 	// Perform the request.
 	err := c.Perform()
 	if err != nil {
-		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, device.AuthenticationType, err)
+		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, device.RtspStreams[i].AuthenticationType, err)
 		return false
 	}
 
@@ -316,7 +335,20 @@ func (s *Scanner) credAttack(device Device, username string, password string) bo
 	return false
 }
 
-func (s *Scanner) validateDevice(device Device) bool {
+
+func (s *Scanner) validateDevice(device Device, resChan chan<- Device) {
+	for i := range device.RtspStreams {
+		ok := s.validateStream(device, i)
+		if ok{
+			device.RtspStreams[i].Available = true
+		}
+		time.Sleep(s.attackInterval)
+	}
+
+	resChan <- device 
+}
+
+func (s *Scanner) validateStream(device Device, i int) bool {
 	c := s.curl.Duphandle()
 
 	attackURL := fmt.Sprintf(
@@ -325,13 +357,13 @@ func (s *Scanner) validateDevice(device Device) bool {
 		device.Password,
 		device.Address,
 		device.Port,
-		device.Stream,
+		device.RtspStreams[i].Stream,
 	)
 
 	s.setCurlOptions(c)
 
 	// Set proper authentication type.
-	_ = c.Setopt(curl.OPT_HTTPAUTH, device.AuthenticationType)
+	_ = c.Setopt(curl.OPT_HTTPAUTH, device.RtspStreams[i].AuthenticationType)
 	_ = c.Setopt(curl.OPT_USERPWD, fmt.Sprint(device.Username, ":", device.Password))
 
 	// Send a request to the URL of the device we want to attack.
@@ -345,7 +377,10 @@ func (s *Scanner) validateDevice(device Device) bool {
 	// Perform the request.
 	err := c.Perform()
 	if err != nil {
-		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, device.AuthenticationType, err)
+
+		fmt.Println("encoutnered an error in perform: " + err.Error())
+
+		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, device.RtspStreams[i].AuthenticationType, err)
 		return false
 	}
 

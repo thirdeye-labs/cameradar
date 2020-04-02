@@ -4,12 +4,12 @@ import "time"
 
 // Device represents a camera's RTSP device
 type Device struct {
-	Device			string `json:"device"`
-	Username		string `json:"username"`
-	Password 		string `json:"password"`
-	rtspStreams		[]rtspStream `json:"rtspStreams"`
-	Address			string `json:"address" validate:"required"`
-	Port			uint16 `json:"port" validate:"required"`
+	Device			string			`json:"device"`
+	Username		string 			`json:"username"`
+	Password 		string			`json:"password"`
+	RtspStreams		[]rtspStream	`json:"rtspStreams"`
+	Address			string			`json:"address" validate:"required"`
+	Port			uint16			`json:"port" validate:"required"`
 }
 
 type rtspStream struct {
